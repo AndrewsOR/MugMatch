@@ -1,2 +1,2 @@
-# mug-match
-MugMatch: Python interface to SmugMug API v2 for deduplication and other tasks
+# MugMatch
+Python library for SmugMug API v2 for deduplication and other tasks
