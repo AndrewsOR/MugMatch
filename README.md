@@ -14,7 +14,7 @@ I created a Python library with a GUI that allows me to review each set of dupli
 
 In the course of writing this program, I discovered that about one third of my photos were duplicates, with an average of three copies per duplicate. 
 
-The current defalt selection is to keep the photo in the smallest album, with the smallest filename if there's a tie.
+The current default selection is to keep the photo in the smallest album, with the smallest filename if there's a tie.
 
 ### How to use it
 
