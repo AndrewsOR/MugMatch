@@ -198,6 +198,18 @@ class CopyDeleter(tk.Frame):
         self.quitButton.pack(side='left', padx=5,pady=5)
         self.populateUI()
         
+    def clearUI(self):
+        """remove any Checkbuttons from previous calls"""
+        for child in self.innerFrame.winfo_children(): 
+            child.destroy()
+    
+    def getNextDupeSet(self):
+        try:
+            return self.data.popitem()[1]
+        except KeyError:
+            messagebox.showinfo("All done", "You've reviewed all duplicates.")
+            raise KeyError()
+            
     def populateUI(self):
         """
         Creates and packs a list of Checkbuttons (cbList) into the innerFrame
@@ -205,33 +217,30 @@ class CopyDeleter(tk.Frame):
         You should help the user out by passing the copy most likely to be the "original"
         (using some business rule) at the head of the list
         """
-        # remove any Checkbuttons from previous calls
-        for child in self.innerFrame.winfo_children(): 
-            child.destroy()
+        self.clearUI()
         try:
-            imgData = self.data.popitem()[1]
+            imgData = self.getNextDupeSet() 
+            # create lists from data to populate Checkbuttons    
+            imgDescs = imgData['ImageDesc'].tolist()
+            thumbUrls =  imgData['ThumbnailUrl'].tolist()
+            # This reference is required to prevent premature garbage collection
+            # More info at the getImgFromUrl docstring
+            self.thumbImgs = [self.getImgFromUrl(x) for x in thumbUrls] 
+            n = len(imgData.index)    
+            self.cbList = [None] * n
+            self.cbValues = [tk.BooleanVar() for i in range(n)]
+            self.cbDestUris = imgData['Uri'].tolist()
+            for i in range(n):
+                self.cbList[i] = tk.Checkbutton( self.innerFrame, 
+                                            text=imgDescs[i], 
+                                            image = self.thumbImgs[i], 
+                                            variable = self.cbValues[i],
+                                            compound='left' )
+                # By default, leave initial button unchecked, others checked
+                if i: self.cbList[i].select() 
+                self.cbList[i].pack(anchor = 'w', padx=5,pady=5) 
         except KeyError:
-            messagebox.showinfo("All done", "You've reviewed all duplicates.")
             self.frame.quit()  
-        # create lists from data to populate Checkbuttons    
-        imgDescs = imgData['ImageDesc'].tolist()
-        thumbUrls =  imgData['ThumbnailUrl'].tolist()
-        # This reference is required to prevent premature garbage collection
-        # More info at the getImgFromUrl docstring
-        self.thumbImgs = [self.getImgFromUrl(x) for x in thumbUrls] 
-        n = len(imgData.index)    
-        self.cbList = [None] * n
-        self.cbValues = [tk.BooleanVar() for i in range(n)]
-        self.cbDestUris = imgData['Uri'].tolist()
-        for i in range(n):
-            self.cbList[i] = tk.Checkbutton( self.innerFrame, 
-                                        text=imgDescs[i], 
-                                        image = self.thumbImgs[i], 
-                                        variable = self.cbValues[i],
-                                        compound='left' )
-            # By default, leave initial button unchecked, others checked
-            if i: self.cbList[i].select() 
-            self.cbList[i].pack(anchor = 'w', padx=5,pady=5) 
             
     def getImgFromUrl(self, url): 
         """
@@ -255,20 +264,23 @@ class CopyDeleter(tk.Frame):
                  
     def querySelection(self):
         return [x.get() for x in self.cbValues]
+    
+    def getDestUris(self):
+        return self.cbDestUris
         
     def executeSelection(self):
-        checked = self.querySelection()
-
-        if ( not all(x for x in checked) or 
+        selects = self.querySelection()
+        destUris = self.getDestUris()
+        if ( not all(x for x in selects) or 
              messagebox.askokcancel(message='Delete ALL occurrences of this image?') 
            ):       
-            for i in range(len(self.cbList)):
-                destUri = self.cbDestUris[i] 
-                if checked[i]:
+            for selected, destUri in zip(selects,destUris):
+                if selected:
                     printNow('Deleting copy at: ' + destUri)
+                    deleteImageFromAlbum(destUri, auth=self.auth)
                 else:    
                     printNow('Ignoring copy at: ' + destUri)
-                self.populateUI()          
+            self.populateUI()          
 
 #------------------------------------------------------------
 
