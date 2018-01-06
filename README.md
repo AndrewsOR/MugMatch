@@ -26,6 +26,7 @@ Assuming you already have some photos on a SmugMug account, you can:
 3. Clone this repository and make a local copy of `credentialsTemplate.py` called `credentials.py`.  Paste your own values of `USER_NAME`, `API_KEY`, `API_SECRET`, `ACCESS_TOKEN`, and `ACCESS_SECRET` strings at the indicated positions.
 4. Ensure that you have Python 3 and the following libraries: `requests`, `PIL`, `tkinter`, and `pandas`.  If not, use `pip install pandas` etc.
 5. Run from terminal with `python mugMatch.py` (running from IDE is not recommended).
+
 Note: if an app will have other users, you can implement [authorization with OAuth1](https://api.smugmug.com/api/v2/doc/tutorial/authorization.html), but this is left as an exercise to the reader.
 
 ### Future improvements
